@@ -101,7 +101,7 @@ Every error returns the same shape:
 1. **Architecture**: - a simple layered structure
    (controller → service → repository) to keep is simple.
 2. `application.yml` holds a few configurable parameters:
-   - **Total capacity** via `parking.total-spaces` (**50** by default)
+   - **Total capacity** via `parking.totalSpaces` (**50** by default)
    - **Surcharge interval** via `parking.surcharge.interval` (**5 minutes** by default)
    - **Surcharge fee per interval** via `parking.surcharge.feePerInterval` (**£1** by default)
 3. **The base charge** is billed on whole elapsed minutes (not rounded up).
