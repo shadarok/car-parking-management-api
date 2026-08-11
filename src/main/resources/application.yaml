@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: car-park
+
+parking:
+  totalSpaces: 50
+  surcharge:
+    interval: 5m
+    feePerInterval: 1
