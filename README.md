@@ -119,7 +119,7 @@ Every error returns the same shape:
 9. **Concurrency**: allocation and billing are synchronized in `ParkingService`, 
    since two simultaneous requests could race for the same space.
 10. **Forget on exit** - there is no billing/registration history.
-11. **Space number** - parking spaces are numbered starting from 1 up to the value of (**`totalSpaces`**). 
+11. **Space number** - parking spaces are numbered starting from 1 up to the value of **`totalSpaces`**. 
 
 ## Questions
 
