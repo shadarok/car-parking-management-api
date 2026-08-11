@@ -143,5 +143,6 @@ src/main/java/com/example/carpark/
 └── service/      # business rules - orchestrates allocation, billing, charge calculation
 ```
 
+> **Note**:
 > `ParkingService` orchestrates business rules and owns concurrency control.
 > `InMemoryParkingRepository` only stores and looks up data.
