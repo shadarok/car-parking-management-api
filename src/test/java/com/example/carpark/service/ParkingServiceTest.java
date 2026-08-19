@@ -1,7 +1,6 @@
 package com.example.carpark.service;
 
 import com.example.carpark.config.ParkingConfig;
-import com.example.carpark.dto.BillResponse;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
 import com.example.carpark.exception.VehicleNotFoundException;
@@ -155,7 +154,7 @@ class ParkingServiceTest {
         void returnsBillWithGeneratedIdAndConsistentTimestamps() {
             parkingService.park("AB12CDE", 1);
 
-            BillResponse bill = parkingService.exitAndBill("AB12CDE");
+            final var bill = parkingService.exitAndBill("AB12CDE");
 
             assertThat(bill.billId()).isNotBlank();
             assertThat(bill.vehicleReg()).isEqualTo("AB12CDE");
@@ -184,7 +183,8 @@ class ParkingServiceTest {
 
             final var charge = parkingService.calculateCharge(VehicleType.SMALL, in, out);
 
-            // 5 * 0.10 = 0.50 + 1 block * £1 = 1.50
+            // 5 * 0.10 = 0.50
+            // + 1 block * £1 = 1.50
             assertThat(charge).isEqualByComparingTo("1.50");
         }
 
@@ -195,7 +195,8 @@ class ParkingServiceTest {
 
             final var charge = parkingService.calculateCharge(VehicleType.SMALL, in, out);
 
-            // 12 * 0.10 = 1.20 + 2 complete blocks * £1 = 3.20 (not 3 blocks)
+            // 12 * 0.10 = 1.20
+            // + 2 complete blocks * £1 = 3.20 (not 3 blocks)
             assertThat(charge).isEqualByComparingTo("3.20");
         }
 
@@ -206,7 +207,8 @@ class ParkingServiceTest {
 
             final var charge = parkingService.calculateCharge(VehicleType.MEDIUM, in, out);
 
-            // 10 * 0.20 = 2.00 + 2 blocks * £1 = 4.00
+            // 10 * 0.20 = 2.00
+            // + 2 blocks * £1 = 4.00
             assertThat(charge).isEqualByComparingTo("4.00");
         }
 
@@ -215,9 +217,10 @@ class ParkingServiceTest {
             final var in = LocalDateTime.of(2026, 1, 1, 10, 0);
             final var out = in.plusMinutes(10);
 
-            BigDecimal charge = parkingService.calculateCharge(VehicleType.LARGE, in, out);
+            final var charge = parkingService.calculateCharge(VehicleType.LARGE, in, out);
 
-            // 10 * 0.40 = 4.00 + 2 blocks * £1 = 6.00
+            // 10 * 0.40 = 4.00
+            // + 2 blocks * £1 = 6.00
             assertThat(charge).isEqualByComparingTo("6.00");
         }
 
