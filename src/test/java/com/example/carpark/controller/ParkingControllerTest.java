@@ -6,6 +6,7 @@ import com.example.carpark.exception.VehicleNotFoundException;
 import com.example.carpark.service.ParkingService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -13,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,8 +54,9 @@ class ParkingControllerTest {
 
         @Test
         void parkVehicle_validRequest_returnsCreated() throws Exception {
+            final var fixedDateTime = LocalDateTime.of(2026, 1, 1, 10, 0);
             given(parkingService.park(anyString(), anyInt()))
-                    .willReturn(new ParkedVehicleResponse("AB12CDE", 1, LocalDateTime.now()));
+                    .willReturn(new ParkedVehicleResponse("AB12CDE", 1, fixedDateTime));
             final var validRequestBody = """
                 {
                     "vehicleReg": "AB12CDE",
@@ -67,7 +70,7 @@ class ParkingControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.vehicleReg").value("AB12CDE"))
                     .andExpect(jsonPath("$.spaceNumber").value(1))
-                    .andExpect(jsonPath("$.timeIn").exists());
+                    .andExpect(jsonPath("$.timeIn").value(fixedDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         }
 
         @Test

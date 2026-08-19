@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -35,6 +36,7 @@ public class ParkingService {
 
     private final ParkingRepository parkingRepository;
     private final ParkingConfig parkingConfig;
+    private final Clock clock;
 
     /**
      * Returns current occupancy against total configured capacity.
@@ -72,7 +74,7 @@ public class ParkingService {
                 .registrationNumber(normalizedRegistrationNumber)
                 .spaceNumber(availableSpaceNumber)
                 .vehicleType(vehicleType)
-                .parkedAt(LocalDateTime.now())
+                .parkedAt(LocalDateTime.now(clock))
                 .build();
 
         parkingRepository.save(vehicle);
@@ -96,7 +98,7 @@ public class ParkingService {
                 .findVehicleByRegistration(normalizedRegistrationNumber)
                 .orElseThrow(() -> new VehicleNotFoundException(registrationNumber));
 
-        final var timeOut = LocalDateTime.now();
+        final var timeOut = LocalDateTime.now(clock);
         final var charge = calculateCharge(
                 parkedVehicle.getVehicleType(),
                 parkedVehicle.getParkedAt(),

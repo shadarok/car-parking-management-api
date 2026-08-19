@@ -1,5 +1,6 @@
 package com.example.carpark.service;
 
+import com.example.carpark.config.MutableClock;
 import com.example.carpark.config.ParkingConfig;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
@@ -14,8 +15,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +25,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ParkingServiceTest {
 
     private static final int TOTAL_SPACES = 2;
+    private static final Instant FIXED_INSTANT = Instant.parse("2026-01-01T10:00:00Z");
 
     @Spy
     private ParkingConfig parkingConfig = createConfig();
 
     @Spy
     private InMemoryParkingRepository parkingRepository = new InMemoryParkingRepository();
+
+    @Spy
+    private MutableClock clock = new MutableClock(FIXED_INSTANT, ZoneOffset.UTC);
 
     @InjectMocks
     private ParkingService parkingService;
@@ -73,7 +77,7 @@ class ParkingServiceTest {
 
             assertThat(response.vehicleReg()).isEqualTo("AB12CDE");
             assertThat(response.spaceNumber()).isEqualTo(1);
-            assertThat(response.timeIn()).isNotNull();
+            assertThat(response.timeIn()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
         }
 
         @Test
@@ -84,7 +88,7 @@ class ParkingServiceTest {
 
             assertThat(response.spaceNumber()).isEqualTo(2);
             assertThat(response.vehicleReg()).isEqualTo("XY34FGH");
-            assertThat(response.timeIn()).isNotNull();
+            assertThat(response.timeIn()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
         }
 
         @Test
@@ -110,7 +114,7 @@ class ParkingServiceTest {
 
             assertThat(response.spaceNumber()).isEqualTo(1);
             assertThat(response.vehicleReg()).isEqualTo("AB12CDE");
-            assertThat(response.timeIn()).isNotNull();
+            assertThat(response.timeIn()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
         }
 
         @Test
@@ -151,14 +155,17 @@ class ParkingServiceTest {
         }
 
         @Test
-        void returnsBillWithGeneratedIdAndConsistentTimestamps() {
+        void returnsBillWithGeneratedIdAndExactChargeThroughFullFlow() {
             parkingService.park("AB12CDE", 1);
+            clock.advanceBy(Duration.ofMinutes(12));
 
             final var bill = parkingService.exitAndBill("AB12CDE");
 
             assertThat(bill.billId()).isNotBlank();
             assertThat(bill.vehicleReg()).isEqualTo("AB12CDE");
-            assertThat(bill.timeOut()).isAfterOrEqualTo(bill.timeIn());
+            assertThat(bill.timeIn()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
+            assertThat(bill.timeOut()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT.plus(Duration.ofMinutes(12)), ZoneOffset.UTC));
+            assertThat(bill.vehicleCharge()).isEqualByComparingTo("3.20");
         }
     }
 
