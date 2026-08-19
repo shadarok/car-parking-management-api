@@ -148,7 +148,7 @@ public class ParkingService {
                 .findVehicleByRegistration(normalizedRegistrationNumber)
                 .orElseThrow(() -> new VehicleNotFoundException(vehicleRegistrationNumber));
 
-        final var currentTime = LocalDateTime.now();
+        final var currentTime = LocalDateTime.now(clock);
         final var ongoingCharge = calculateCharge(
                 parkedVehicle.getVehicleType(),
                 parkedVehicle.getParkedAt(),

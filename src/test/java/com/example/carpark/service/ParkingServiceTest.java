@@ -42,7 +42,7 @@ class ParkingServiceTest {
     private static ParkingConfig createConfig() {
         final var config = new ParkingConfig();
         config.setTotalSpaces(TOTAL_SPACES);
-        config.setSurcharge(new ParkingConfig.Surcharge(Duration.of(5, ChronoUnit.MINUTES), BigDecimal.ONE));
+        config.setSurcharge(new ParkingConfig.Surcharge(Duration.ofMinutes(5), BigDecimal.ONE));
         return config;
     }
 
@@ -248,13 +248,20 @@ class ParkingServiceTest {
         @Test
         void reportsVehicleStatusOnPark() {
             parkingService.park("AB12CDE", 1);
+            clock.advanceBy(Duration.ofMinutes(7));
 
             final var status = parkingService.vehicleStatus("AB12CDE");
 
             assertThat(status.vehicleReg()).isEqualTo("AB12CDE");
             assertThat(status.spaceNumber()).isEqualTo(1);
-            assertThat(status.timeIn()).isInThePast();
-            assertThat(status.ongoingCharge()).isPositive();
+            assertThat(status.timeIn()).isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
+            assertThat(status.ongoingCharge()).isEqualByComparingTo("1.70");
+        }
+
+        @Test
+        void throwsWhenVehicleNotParked() {
+            assertThatThrownBy(() -> parkingService.vehicleStatus("UNKNOWN"))
+                    .isInstanceOf(VehicleNotFoundException.class);
         }
     }
 
