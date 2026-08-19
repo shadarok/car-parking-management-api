@@ -2,7 +2,6 @@ package com.example.carpark.service;
 
 import com.example.carpark.config.MutableClock;
 import com.example.carpark.config.ParkingConfig;
-import com.example.carpark.dto.VehicleStatusResponse;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
 import com.example.carpark.exception.VehicleNotFoundException;
