@@ -2,6 +2,7 @@ package com.example.carpark.service;
 
 import com.example.carpark.config.ParkingConfig;
 import com.example.carpark.dto.*;
+import com.example.carpark.dto.ParkingCapacityResponse;
 import com.example.carpark.dto.VehicleStatusResponse;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
@@ -38,12 +39,14 @@ public class ParkingService {
 
     /**
      * Returns current occupancy against total configured capacity.
-     * Math::max is a safeguard against config runtime mutation.
      */
     public ParkingStatusResponse status() {
         final int occupiedSpaces = parkingRepository.countOccupiedSpaces();
-        final int availableSpaces = Math.max(parkingConfig.getTotalSpaces() - occupiedSpaces, 0);
-        return new ParkingStatusResponse(availableSpaces, occupiedSpaces);
+
+        return new ParkingStatusResponse(
+                availableSpaces(parkingConfig.getTotalSpaces(), occupiedSpaces),
+                occupiedSpaces
+        );
     }
 
     /**
@@ -161,5 +164,37 @@ public class ParkingService {
                 parkedVehicle.getParkedAt(),
                 ongoingCharge
         );
+    }
+    /**
+     * Updates the car park's total capacity.
+     * <p>
+     * Deliberately NOT synchronized with {@link ParkingService#park}/{@link ParkingService#exitAndBill}:
+     * unlike those methods, this is a single field write with no check-then-act sequence to protect,
+     * so plain int write-atomicity plus {@code volatile} on {@link ParkingConfig#getTotalSpaces()}
+     * (for cross-thread visibility)
+     * <p>
+     * Deliberately allows shrinking capacity below current occupancy
+     * (e.g. a section of the car park closed for maintenance) rather than rejecting the change:
+     * already-parked vehicles keep their spaces and can still exit normally via exitAndBill;
+     * {@link ParkingRepository#findFirstAvailableSpace} naturally won't offer spaces beyond the new lower limit;
+     */
+    public ParkingCapacityResponse updateCapacity(Integer newTotalCapacity) {
+        parkingConfig.setTotalSpaces(newTotalCapacity);
+
+        final var occupiedSpaces = parkingRepository.countOccupiedSpaces();
+        final var totalSpaces = parkingConfig.getTotalSpaces();
+
+        return new ParkingCapacityResponse(
+                totalSpaces,
+                availableSpaces(totalSpaces, occupiedSpaces),
+                occupiedSpaces
+        );
+    }
+
+    /**
+     * Math::max is a safeguard against config runtime mutation.
+     */
+    private int availableSpaces(int totalSpaces, int occupiedSpaces) {
+        return Math.max(totalSpaces - occupiedSpaces, 0);
     }
 }

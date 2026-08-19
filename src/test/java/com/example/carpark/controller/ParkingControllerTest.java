@@ -1,6 +1,9 @@
 package com.example.carpark.controller;
 
 import com.example.carpark.dto.*;
+import com.example.carpark.dto.ParkedVehicleResponse;
+import com.example.carpark.dto.ParkingCapacityResponse;
+import com.example.carpark.dto.ParkingStatusResponse;
 import com.example.carpark.exception.VehicleNotFoundException;
 import com.example.carpark.service.ParkingService;
 import com.example.carpark.service.ReportService;
@@ -21,8 +24,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -173,4 +176,30 @@ class ParkingControllerTest {
         }
     }
 
+    @Nested
+    class ParkingCapacity {
+
+        @Test
+        void updateCapacity_validRequest_returnsOkWithUpdatedCounts() throws Exception {
+            when(parkingService.updateCapacity(100))
+                    .thenReturn(new ParkingCapacityResponse(100, 98, 2));
+
+            mockMvc.perform(put("/parking/capacity")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"totalSpaces\": 100}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalSpaces").value(100))
+                    .andExpect(jsonPath("$.availableSpaces").value(98))
+                    .andExpect(jsonPath("$.occupiedSpaces").value(2));
+        }
+
+        @Test
+        void updateCapacity_nonPositiveValue_returnsBadRequest() throws Exception {
+            mockMvc.perform(put("/parking/capacity")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"totalSpaces\": 0}"))
+                    .andExpect(status().isBadRequest());
+        }
+
+    }
 }
