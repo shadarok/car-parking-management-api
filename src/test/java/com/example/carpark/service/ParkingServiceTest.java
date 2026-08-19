@@ -2,6 +2,7 @@ package com.example.carpark.service;
 
 import com.example.carpark.config.MutableClock;
 import com.example.carpark.config.ParkingConfig;
+import com.example.carpark.dto.VehicleStatusResponse;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
 import com.example.carpark.exception.VehicleNotFoundException;
@@ -241,4 +242,21 @@ class ParkingServiceTest {
             assertThat(charge).isEqualByComparingTo("0.10");
         }
     }
+
+    @Nested
+    class VehicleStatus {
+
+        @Test
+        void reportsVehicleStatusOnPark() {
+            parkingService.park("AB12CDE", 1);
+
+            final var status = parkingService.vehicleStatus("AB12CDE");
+
+            assertThat(status.vehicleReg()).isEqualTo("AB12CDE");
+            assertThat(status.spaceNumber()).isEqualTo(1);
+            assertThat(status.timeIn()).isInThePast();
+            assertThat(status.ongoingCharge()).isPositive();
+        }
+    }
+
 }

@@ -1,21 +1,18 @@
 package com.example.carpark.controller;
 
-import com.example.carpark.dto.ParkedVehicleResponse;
-import com.example.carpark.dto.ParkingStatusResponse;
-import com.example.carpark.dto.SummaryResponse;
-import com.example.carpark.dto.SummaryResponses;
+import com.example.carpark.dto.*;
 import com.example.carpark.exception.VehicleNotFoundException;
 import com.example.carpark.service.ParkingService;
 import com.example.carpark.service.ReportService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -119,6 +116,38 @@ class ParkingControllerTest {
                     .thenThrow(new VehicleNotFoundException("UNKNOWN"));
 
             mockMvc.perform(post("/parking/bill")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"vehicleReg\": \"UNKNOWN\"}"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class VehicleStatus {
+
+        @Test
+        void vehicleStatus_returnsOkWithCounts() throws Exception {
+            given(parkingService.vehicleStatus(anyString()))
+                    .willReturn(new VehicleStatusResponse(
+                            "AB12CDE",
+                            1,
+                            LocalDateTime.now(),
+                            new BigDecimal("10.0")));
+
+            mockMvc.perform(get("/parking/AB12CDE"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.vehicleReg").value("AB12CDE"))
+                    .andExpect(jsonPath("$.spaceNumber").value(1))
+                    .andExpect(jsonPath("$.timeIn").exists())
+                    .andExpect(jsonPath("$.ongoingCharge").isNumber());
+        }
+
+        @Test
+        void vehicleStatus_unknownVehicle_returnsNotFound() throws Exception {
+            when(parkingService.vehicleStatus(anyString()))
+                    .thenThrow(new VehicleNotFoundException("UNKNOWN"));
+
+            mockMvc.perform(get("/parking/UNKNOWN")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"vehicleReg\": \"UNKNOWN\"}"))
                     .andExpect(status().isNotFound());

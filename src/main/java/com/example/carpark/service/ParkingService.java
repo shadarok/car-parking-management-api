@@ -2,6 +2,7 @@ package com.example.carpark.service;
 
 import com.example.carpark.config.ParkingConfig;
 import com.example.carpark.dto.*;
+import com.example.carpark.dto.VehicleStatusResponse;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
 import com.example.carpark.exception.VehicleNotFoundException;
@@ -116,9 +117,9 @@ public class ParkingService {
     /**
      * Calculates the parking charge for a stay:
      * - Billed per whole elapsed minute (partial minutes aren't rounded up),
-     * with a minimum of 1 minute so a very short stay is never free.
+     *   with a minimum of 1 minute so a very short stay is never free.
      * - The GBP 1 surcharge applies once per COMPLETE 5-minute block/interval (not rounded up),
-     * E.g. 12 minutes = 2 complete blocks = GBP 2 surcharge (not 3).
+     *   E.g. 12 minutes = 2 complete blocks = GBP 2 surcharge (not 3).
      */
     BigDecimal calculateCharge(VehicleType vehicleType, LocalDateTime timeIn, LocalDateTime timeOut) {
         final var minutesParked = ParkingTimeCalculator.minutesParked(timeIn, timeOut);
@@ -140,4 +141,25 @@ public class ParkingService {
         return baseCharge.add(surcharge).setScale(2, RoundingMode.HALF_UP);
     }
 
+    public VehicleStatusResponse vehicleStatus(String vehicleRegistrationNumber) {
+        final var normalizedRegistrationNumber = new VehicleRegistrationNumber(vehicleRegistrationNumber);
+
+        final var parkedVehicle = parkingRepository
+                .findVehicleByRegistration(normalizedRegistrationNumber)
+                .orElseThrow(() -> new VehicleNotFoundException(vehicleRegistrationNumber));
+
+        final var currentTime = LocalDateTime.now();
+        final var ongoingCharge = calculateCharge(
+                parkedVehicle.getVehicleType(),
+                parkedVehicle.getParkedAt(),
+                currentTime
+        );
+
+        return new VehicleStatusResponse(
+                parkedVehicle.vehicleRegistrationNumber(),
+                parkedVehicle.getSpaceNumber(),
+                parkedVehicle.getParkedAt(),
+                ongoingCharge
+        );
+    }
 }

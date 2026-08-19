@@ -27,6 +27,15 @@ public class ParkingController {
     }
 
     /**
+     * Gets a given vehicle status
+     * @return {@link VehicleStatusResponse}
+     */
+    @GetMapping("/{vehicleRegistrationNumber}")
+    public ResponseEntity<VehicleStatusResponse> vehicleStatus(@PathVariable("vehicleRegistrationNumber") String vehicleRegistrationNumber) {
+        return ResponseEntity.ok(parkingService.vehicleStatus(vehicleRegistrationNumber));
+    }
+
+    /**
      * Parks a given vehicle in the first available space and returns the vehicle and its space number
      * @param request {{@link ParkVehicleRequest}
      * @return {@link ParkedVehicleResponse}
