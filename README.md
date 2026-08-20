@@ -80,6 +80,23 @@ curl -X POST http://localhost:8080/parking/bill \
 }
 ```
 
+### `GET /parking/{vehicleRegistrationNumber}`
+
+Returns a given vehicle status
+
+```bash
+curl http://localhost:8080/parking/{vehicleRegistrationNumber}
+```
+
+```json
+{
+   "vehicleReg": "AB12CDE",
+   "spaceNumber": 1,
+   "timeIn": "2026-08-10T10:00:00",
+   "ongoingCharge": 3.20
+}
+```
+
 ### `GET /parking/summary`
 
 Returns current parked vehicles and their parking duration. 
