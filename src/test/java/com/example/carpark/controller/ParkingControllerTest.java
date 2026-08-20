@@ -2,8 +2,11 @@ package com.example.carpark.controller;
 
 import com.example.carpark.dto.ParkedVehicleResponse;
 import com.example.carpark.dto.ParkingStatusResponse;
+import com.example.carpark.dto.SummaryResponse;
+import com.example.carpark.dto.SummaryResponses;
 import com.example.carpark.exception.VehicleNotFoundException;
 import com.example.carpark.service.ParkingService;
+import com.example.carpark.service.ReportService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,6 +37,9 @@ class ParkingControllerTest {
 
     @MockitoBean
     private ParkingService parkingService;
+
+    @MockitoBean
+    private ReportService reportService;
 
     @Nested
     class ParkingStatus {
@@ -58,11 +65,11 @@ class ParkingControllerTest {
             given(parkingService.park(anyString(), anyInt()))
                     .willReturn(new ParkedVehicleResponse("AB12CDE", 1, fixedDateTime));
             final var validRequestBody = """
-                {
-                    "vehicleReg": "AB12CDE",
-                    "vehicleType": 1
-                }
-                """;
+                    {
+                        "vehicleReg": "AB12CDE",
+                        "vehicleType": 1
+                    }
+                    """;
 
             mockMvc.perform(post("/parking")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -115,6 +122,25 @@ class ParkingControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"vehicleReg\": \"UNKNOWN\"}"))
                     .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class ParkingSummary {
+
+        @Test
+        void summary_returnsParkedVehicleSummary() throws Exception {
+            given(reportService.summaryAllParkedVehicles())
+                    .willReturn(new SummaryResponses(
+                            List.of(new SummaryResponse("AB12CDE", 12),
+                                    new SummaryResponse("XY98FGH", 5))));
+
+            mockMvc.perform(get("/parking/summary"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.summaries[0].vehicleReg").value("AB12CDE"))
+                    .andExpect(jsonPath("$.summaries[0].minutesParked").value(12))
+                    .andExpect(jsonPath("$.summaries[1].vehicleReg").value("XY98FGH"))
+                    .andExpect(jsonPath("$.summaries[1].minutesParked").value(5));
         }
     }
 

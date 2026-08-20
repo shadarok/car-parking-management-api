@@ -80,6 +80,29 @@ curl -X POST http://localhost:8080/parking/bill \
 }
 ```
 
+### `GET /parking/summary`
+
+Returns current parked vehicles and their parking duration. 
+
+```bash
+curl -X POST http://localhost:8080/parking/summary
+```
+
+```json
+{
+  "summaries": [
+     {
+        "vehicleReg": "AB12CDE",
+        "minutesParked": 12
+     },
+     {
+        "vehicleReg": "XY98FGH",
+        "minutesParked": 5
+     }
+  ]
+}
+```
+
 ## Error handling
 
 | Scenario                                           | Status           |

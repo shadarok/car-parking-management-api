@@ -1,9 +1,7 @@
 package com.example.carpark.service;
 
 import com.example.carpark.config.ParkingConfig;
-import com.example.carpark.dto.BillResponse;
-import com.example.carpark.dto.ParkedVehicleResponse;
-import com.example.carpark.dto.ParkingStatusResponse;
+import com.example.carpark.dto.*;
 import com.example.carpark.exception.AlreadyParkedException;
 import com.example.carpark.exception.NoAvailableSpaceException;
 import com.example.carpark.exception.VehicleNotFoundException;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -119,12 +116,12 @@ public class ParkingService {
     /**
      * Calculates the parking charge for a stay:
      * - Billed per whole elapsed minute (partial minutes aren't rounded up),
-     *   with a minimum of 1 minute so a very short stay is never free.
+     * with a minimum of 1 minute so a very short stay is never free.
      * - The GBP 1 surcharge applies once per COMPLETE 5-minute block/interval (not rounded up),
-     *   E.g. 12 minutes = 2 complete blocks = GBP 2 surcharge (not 3).
+     * E.g. 12 minutes = 2 complete blocks = GBP 2 surcharge (not 3).
      */
     BigDecimal calculateCharge(VehicleType vehicleType, LocalDateTime timeIn, LocalDateTime timeOut) {
-        final var minutesParked = Math.max(Duration.between(timeIn, timeOut).toMinutes(), 1);
+        final var minutesParked = ParkingTimeCalculator.minutesParked(timeIn, timeOut);
 
         final var baseCharge = vehicleType
                 .getRatePerMinute()

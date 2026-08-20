@@ -3,6 +3,7 @@ package com.example.carpark.repository;
 import com.example.carpark.model.ParkedVehicle;
 import com.example.carpark.model.VehicleRegistrationNumber;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ParkingRepository {
@@ -17,4 +18,6 @@ public interface ParkingRepository {
     void remove(VehicleRegistrationNumber vehicleRegistrationNumber, int spaceNumber);
 
     int countOccupiedSpaces();
+
+    List<ParkedVehicle> findAllParkedVehicles();
 }

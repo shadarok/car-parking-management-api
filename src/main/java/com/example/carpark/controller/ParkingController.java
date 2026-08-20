@@ -2,6 +2,7 @@ package com.example.carpark.controller;
 
 import com.example.carpark.dto.*;
 import com.example.carpark.service.ParkingService;
+import com.example.carpark.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class ParkingController {
 
     private final ParkingService parkingService;
+    private final ReportService reportService;
 
     /**
      * Gets available and occupied number of spaces
@@ -46,5 +48,11 @@ public class ParkingController {
     public ResponseEntity<BillResponse> exitAndBill(@Valid @RequestBody BillRequest request) {
         final var response = parkingService.exitAndBill(request.vehicleReg());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<SummaryResponses> summary() {
+        final var summaries = reportService.summaryAllParkedVehicles();
+        return ResponseEntity.ok(summaries);
     }
 }

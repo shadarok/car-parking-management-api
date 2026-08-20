@@ -5,6 +5,7 @@ import com.example.carpark.model.VehicleRegistrationNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,5 +57,10 @@ public class InMemoryParkingRepository implements ParkingRepository {
     @Override
     public int countOccupiedSpaces() {
         return vehicleBySpace.size();
+    }
+
+    @Override
+    public List<ParkedVehicle> findAllParkedVehicles() {
+        return List.copyOf(vehicleBySpace.values());
     }
 }
