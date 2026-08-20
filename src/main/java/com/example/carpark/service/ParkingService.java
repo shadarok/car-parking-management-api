@@ -44,7 +44,7 @@ public class ParkingService {
         final int occupiedSpaces = parkingRepository.countOccupiedSpaces();
 
         return new ParkingStatusResponse(
-                availableSpaces(parkingConfig.getTotalSpaces(), occupiedSpaces),
+                ParkingCalculator.availableSpaces(parkingConfig.getTotalSpaces(), occupiedSpaces),
                 occupiedSpaces
         );
     }
@@ -125,7 +125,7 @@ public class ParkingService {
      *   E.g. 12 minutes = 2 complete blocks = GBP 2 surcharge (not 3).
      */
     BigDecimal calculateCharge(VehicleType vehicleType, LocalDateTime timeIn, LocalDateTime timeOut) {
-        final var minutesParked = ParkingTimeCalculator.minutesParked(timeIn, timeOut);
+        final var minutesParked = ParkingCalculator.minutesParked(timeIn, timeOut);
 
         final var baseCharge = vehicleType
                 .getRatePerMinute()
@@ -186,15 +186,9 @@ public class ParkingService {
 
         return new ParkingCapacityResponse(
                 totalSpaces,
-                availableSpaces(totalSpaces, occupiedSpaces),
+                ParkingCalculator.availableSpaces(totalSpaces, occupiedSpaces),
                 occupiedSpaces
         );
     }
 
-    /**
-     * Math::max is a safeguard against config runtime mutation.
-     */
-    private int availableSpaces(int totalSpaces, int occupiedSpaces) {
-        return Math.max(totalSpaces - occupiedSpaces, 0);
-    }
 }

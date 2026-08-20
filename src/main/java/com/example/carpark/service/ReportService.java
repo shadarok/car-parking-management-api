@@ -28,7 +28,7 @@ public class ReportService {
     }
 
     private @NonNull SummaryResponse toSummaryResponse(ParkedVehicle parkedVehicle) {
-        final var minutesParked = ParkingTimeCalculator.minutesParked(
+        final var minutesParked = ParkingCalculator.minutesParked(
                 parkedVehicle.getParkedAt(),
                 LocalDateTime.now(clock)
         );
