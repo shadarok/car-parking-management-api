@@ -69,4 +69,16 @@ public class ParkingController {
         final var summaries = reportService.summaryAllParkedVehicles();
         return ResponseEntity.ok(summaries);
     }
+
+    /**
+     * Sets total parking capacity
+     *
+     * @param request {@link UpdateParkingCapacityRequest}
+     * @return {@link ParkingCapacityResponse}
+     */
+    @PutMapping("/capacity")
+    public ResponseEntity<ParkingCapacityResponse> updateCapacity(@Valid @RequestBody UpdateParkingCapacityRequest request) {
+        final var response = parkingService.updateCapacity(request.totalSpaces());
+        return ResponseEntity.ok(response);
+    }
 }

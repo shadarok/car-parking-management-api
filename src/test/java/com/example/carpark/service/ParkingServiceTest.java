@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @ExtendWith(MockitoExtension.class)
 class ParkingServiceTest {
@@ -264,4 +264,56 @@ class ParkingServiceTest {
         }
     }
 
+
+    @Nested
+    class Capacity {
+
+        @Test
+        void increasingCapacityMakesMoreAvailableSpaces() {
+            parkingService.park("AB12CDE", 1);
+            parkingService.park("XY34FGH", 2);
+
+            final var response = parkingService.updateCapacity(5);
+
+            assertThat(response.totalSpaces()).isEqualTo(5);
+            assertThat(response.occupiedSpaces()).isEqualTo(2);
+            assertThat(response.availableSpaces()).isEqualTo(3);
+
+            final var parked = parkingService.park("ZZ99ZZZ", 1);
+            assertThat(parked.spaceNumber()).isEqualTo(3);
+        }
+
+        @Test
+        void shrinkingCapacityBelowOccupancyReduceAvailableToZeroWithoutEvictingVehicles() {
+            parkingService.park("AB12CDE", 1);
+            parkingService.park("XY34FGH", 2);
+
+            final var response = parkingService.updateCapacity(1);
+
+            assertThat(response.totalSpaces()).isEqualTo(1);
+            assertThat(response.occupiedSpaces()).isEqualTo(2);
+            assertThat(response.availableSpaces()).isEqualTo(0);
+
+            // both vehicles are still parked and can still exit normally
+            assertThatCode(() -> parkingService.exitAndBill("AB12CDE")).doesNotThrowAnyException();
+            assertThatCode(() -> parkingService.exitAndBill("XY34FGH")).doesNotThrowAnyException();
+        }
+
+        @Test
+        void rejectsNewArrivalsUntilOccupancyDrainsBelowShrunkenCapacity() {
+            parkingService.park("AB12CDE", 1);
+            parkingService.park("XY34FGH", 2);
+            parkingService.updateCapacity(1);
+
+            assertThatThrownBy(() -> parkingService.park("ZZ99ZZZ", 1))
+                    .isInstanceOf(NoAvailableSpaceException.class);
+
+            parkingService.exitAndBill("AB12CDE");
+            parkingService.exitAndBill("XY34FGH");
+
+            // under the new limit of 1 - allocation succeeds again
+            final var parked = parkingService.park("ZZ99ZZZ", 1);
+            assertThat(parked.spaceNumber()).isEqualTo(1);
+        }
+    }
 }

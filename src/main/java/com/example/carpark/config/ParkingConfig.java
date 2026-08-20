@@ -14,7 +14,13 @@ import java.time.Duration;
 @Setter
 public class ParkingConfig {
 
-    private int totalSpaces;
+    /**
+     * Mutable at runtime via {@code PUT /parking/capacity} (seeParkingService#updateCapacity),
+     * not just at startup - hence {@code volatile}: ParkingService.getStatus() and the capacity update itself are
+     * deliberately not synchronized with park()/exitAndBill() (no check-then-act sequence needs protecting there),
+     * so this field needs to guarantee cross-thread visibility on its own rather than relying on a lock.
+     */
+    private volatile int totalSpaces;
     private Surcharge surcharge;
 
     public record Surcharge(
