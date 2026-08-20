@@ -97,6 +97,20 @@ curl http://localhost:8080/parking/{vehicleRegistrationNumber}
 }
 ```
 
+### `PUT /parking/capacity`
+
+Sets total parking capacity
+
+```bash
+curl -X PUT http://localhost:8080/parking/capacity \
+  -H "Content-Type: application/json" \
+  -d '{"totalSpaces": 100}'
+```
+
+```json
+{ "totalSpaces": 100, "availableSpaces": 98, "occupiedSpaces": 2 }
+```
+
 ### `GET /parking/summary`
 
 Returns current parked vehicles and their parking duration. 
